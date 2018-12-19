@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>com.github.phillip-kruger</groupId>
+    <artifactId>thorn-2291</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+    
+    <name>THORN-2291</name>
+    <description>Reproducing THORN-2291</description>
+    
+    <properties>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        
+        <lombok.version>1.18.2</lombok.version>
+        <microProfile.version>1.3</microProfile.version>
+        <thorntail.version>2.2.1.Final</thorntail.version>
+    </properties>        
+    
+    <dependencyManagement>
+        <dependencies>
+            <!-- Thorntail -->
+            <dependency>
+                <groupId>io.thorntail</groupId>
+                <artifactId>bom-all</artifactId>
+                <version>${thorntail.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency> 
+            <!-- MicroProfile -->
+            <dependency>
+                <groupId>org.eclipse.microprofile</groupId>
+                <artifactId>microprofile</artifactId>
+                <version>${microProfile.version}</version>
+                <type>pom</type>
+                <scope>provided</scope>
+            </dependency>
+            <!-- Lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+    <dependencies>
+        <!-- Properties file -->
+        <dependency>
+            <groupId>org.microprofile-ext.config-ext</groupId>
+            <artifactId>configsource-properties</artifactId>
+            <version>1.0.4</version>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <!-- Thorntail Runner -->
+        <dependency>
+            <groupId>io.thorntail</groupId>
+            <artifactId>thorntail-runner</artifactId>
+            <version>${thorntail.version}</version>
+       	</dependency>
+        
+        <!-- MicroProfile -->
+        <dependency>
+            <groupId>org.eclipse.microprofile</groupId>
+            <artifactId>microprofile</artifactId>
+            <type>pom</type>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- Microprofile -->
+<!--        <dependency>
+            <groupId>io.thorntail</groupId>
+            <artifactId>microprofile</artifactId>
+        </dependency>-->
+
+    </dependencies>
+    
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        
+        <plugins>    
+            <plugin>
+                <groupId>io.thorntail</groupId>
+                <artifactId>thorntail-maven-plugin</artifactId>
+                <version>${thorntail.version}</version>
+                <executions>
+                    <execution>
+                        <id>2</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <properties>
+                        <thorntail.context.path>/${project.build.finalName}</thorntail.context.path>
+                    </properties>
+                </configuration>
+            </plugin>
+        </plugins>
+        
+    </build>
+    
+    <profiles>
+        
+        <!-- Run Thorntail -->
+        <profile>
+            <id>thorntail</id>
+            <activation>
+                <property>
+                    <name>thorntail</name>
+                </property>
+            </activation>
+            
+            <properties>
+                <thorntail.configDir>${basedir}${file.separator}src${file.separator}main${file.separator}resources</thorntail.configDir>
+            </properties>
+            
+            <build>
+                <plugins>
+
+                    <!--To configure thorntail--> 
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>add-resource</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>add-resource</goal>
+                                </goals>
+                                <configuration>
+                                    <resources>
+                                         <!--thorntail config--> 
+                                        <resource>
+                                            <directory>${thorntail.configDir}</directory>
+                                            <targetPath>${project.build.directory}</targetPath>
+                                            <filtering>true</filtering>
+                                            <includes>
+                                                <include>project*.yml</include>
+                                                <include>*.properties</include>
+                                            </includes>
+                                        </resource>
+
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>io.thorntail</groupId>
+                        <artifactId>thorntail-maven-plugin</artifactId>
+                        <version>${thorntail.version}</version>
+                        <executions>
+                            <execution>
+                                <id>2</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>package</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <properties>
+                                <thorntail.context.path>/${project.build.finalName}</thorntail.context.path>
+                            </properties>
+                        </configuration>
+                    </plugin>
+                    
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>1</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>java</executable>
+                                    <arguments>
+                                        <argument>-jar</argument>
+                                        <argument>${project.build.directory}${file.separator}${project.build.finalName}-thorntail.jar</argument>
+                                        <argument>-s</argument>
+                                        <argument>${project.build.directory}${file.separator}project-defaults.yml</argument>
+                                        <argument>-Sdev</argument>
+                                        <argument>-Dconfigsource.yaml.pollForChanges=true</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        
+                    </plugin>
+
+                </plugins>
+            </build>
+            
+        </profile>
+        
+        
+    </profiles>
+    
+</project>
