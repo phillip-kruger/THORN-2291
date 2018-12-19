@@ -81,10 +81,10 @@
         </dependency>
         
         <!-- Microprofile -->
-<!--        <dependency>
+        <dependency>
             <groupId>io.thorntail</groupId>
             <artifactId>microprofile</artifactId>
-        </dependency>-->
+        </dependency>
 
     </dependencies>
     

@@ -79,3 +79,52 @@ This will build and create a fat jar and then run the jar. All working as expect
 
 ## Testing via Thorntail Runner
 
+### Problem 1 - Autodetect not working.
+When building with maven, I use autodetect, so no thorntail.io fractions are defined in the pom.xml. However in Runner this result in :
+
+	Caused by: java.lang.ClassNotFoundException: org.wildfly.swarm.Swarm
+		at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
+		at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
+		at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:349)
+		at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
+		at org.wildfly.swarm.bootstrap.MainInvoker.getMainClass(MainInvoker.java:117)
+		at org.wildfly.swarm.bootstrap.MainInvoker.<init>(MainInvoker.java:49)
+		at org.wildfly.swarm.bootstrap.Main.run(Main.java:131)
+		at org.wildfly.swarm.bootstrap.Main.main(Main.java:85)
+
+So we need to add this to pom.xml:
+
+		<dependency>
+            <groupId>io.thorntail</groupId>
+            <artifactId>microprofile</artifactId>
+        </dependency>		
+        
+(or whatever other dependencies needed)
+
+Ideal would be that Runner also works with autodetect.
+
+### Problem 2 - Classloading issue with external MicroProfile Config source.
+
+After the workaround describe above we get:
+
+		[31m2018-12-19 12:32:01,641 ERROR [stderr] (main) Caused by: java.util.ServiceConfigurationError: org.eclipse.microprofile.config.spi.ConfigSource: Provider org.microprofileext.config.source.properties.PropertiesConfigSource not a subtype
+		[31m2018-12-19 12:32:01,641 ERROR [stderr] (main) 	at java.util.ServiceLoader.fail(ServiceLoader.java:239)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at java.util.ServiceLoader.access$300(ServiceLoader.java:185)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at java.util.ServiceLoader$LazyIterator.nextService(ServiceLoader.java:376)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at java.util.ServiceLoader$LazyIterator.next(ServiceLoader.java:404)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at java.util.ServiceLoader$1.next(ServiceLoader.java:480)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at java.lang.Iterable.forEach(Iterable.java:74)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at io.smallrye.config.SmallRyeConfigBuilder.discoverSources(SmallRyeConfigBuilder.java:72)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at io.smallrye.config.SmallRyeConfigBuilder.build(SmallRyeConfigBuilder.java:187)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at io.smallrye.config.SmallRyeConfigProviderResolver.getConfig(SmallRyeConfigProviderResolver.java:51)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at org.eclipse.microprofile.config.ConfigProvider.getConfig(ConfigProvider.java:107)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at io.smallrye.openapi.api.util.ArchiveUtil.archiveToConfig(ArchiveUtil.java:65)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at org.wildfly.swarm.microprofile.openapi.runtime.OpenApiDeploymentProcessor.<init>(OpenApiDeploymentProcessor.java:71)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	at org.jboss.weld.injection.ConstructorInjectionPoint.newInstance(ConstructorInjectionPoint.java:119)
+		[31m2018-12-19 12:32:01,642 ERROR [stderr] (main) 	... 33 more
+        
+        
