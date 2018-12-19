@@ -18,6 +18,8 @@
         <lombok.version>1.18.2</lombok.version>
         <microProfile.version>1.3</microProfile.version>
         <thorntail.version>2.2.1.Final</thorntail.version>
+        
+        <thorntail.configDir>${basedir}${file.separator}src${file.separator}main${file.separator}resources</thorntail.configDir>
     </properties>        
     
     <dependencyManagement>
@@ -90,6 +92,37 @@
         <finalName>${project.artifactId}</finalName>
         
         <plugins>    
+            <!--To configure thorntail--> 
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>add-resource</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>add-resource</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                 <!--thorntail config--> 
+                                <resource>
+                                    <directory>${thorntail.configDir}</directory>
+                                    <targetPath>${project.build.directory}</targetPath>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>project*.yml</include>
+                                        <include>*.properties</include>
+                                    </includes>
+                                </resource>
+
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--To build fat jar--> 
             <plugin>
                 <groupId>io.thorntail</groupId>
                 <artifactId>thorntail-maven-plugin</artifactId>
@@ -125,63 +158,12 @@
             </activation>
             
             <properties>
-                <thorntail.configDir>${basedir}${file.separator}src${file.separator}main${file.separator}resources</thorntail.configDir>
+                
             </properties>
             
             <build>
                 <plugins>
 
-                    <!--To configure thorntail--> 
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>3.0.0</version>
-                        <executions>
-                            <execution>
-                                <id>add-resource</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>add-resource</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                         <!--thorntail config--> 
-                                        <resource>
-                                            <directory>${thorntail.configDir}</directory>
-                                            <targetPath>${project.build.directory}</targetPath>
-                                            <filtering>true</filtering>
-                                            <includes>
-                                                <include>project*.yml</include>
-                                                <include>*.properties</include>
-                                            </includes>
-                                        </resource>
-
-                                    </resources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <plugin>
-                        <groupId>io.thorntail</groupId>
-                        <artifactId>thorntail-maven-plugin</artifactId>
-                        <version>${thorntail.version}</version>
-                        <executions>
-                            <execution>
-                                <id>2</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>package</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <properties>
-                                <thorntail.context.path>/${project.build.finalName}</thorntail.context.path>
-                            </properties>
-                        </configuration>
-                    </plugin>
-                    
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>

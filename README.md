@@ -1,9 +1,13 @@
 # THORN-2291
 Reproducing THORN-2291
 
-Simple JAX-RS Service that list all config values.
+Simple JAX-RS Service that list all config values:
 
-Test via http://localhost:8080/thorn-2291/api/all
+    http://localhost:8080/thorn-2291/api/all
+
+and list all config sources:
+
+    localhost:8080/thorn-2291/api/sources
 
 ## Testing via maven.
 
